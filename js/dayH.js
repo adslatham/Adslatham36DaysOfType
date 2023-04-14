@@ -15,9 +15,9 @@ function setup() {
   fSize = 900;
   textFont(font);
   textSize(fSize);
-  msg = "f";
+  msg = "h";
   pts = font.textToPoints(msg, 0, 0, fSize, {
-    sampleFactor: 0.05, // increase for more points
+    sampleFactor: 0.03, // increase for more points
     simplifyThreshold: 0.0, // increase to remove collinear points
   });
   console.log(pts); // { x, y, path angle }
@@ -48,15 +48,6 @@ function setup() {
 
   letterWidth = largest - smallest;
   letterHeight = largesty - smallesty;
-
-  var move = 2500;
-
-  for (var i = 0; i < 600; i++) {
-    boxes.push({
-      x: random(-move, move),
-      y: random(-move, move),
-    });
-  }
 }
 
 function draw() {
@@ -65,36 +56,28 @@ function draw() {
   strokeWeight(2);
   stroke(255);
 
-  ambientLight(50);
-  pointLight(5, 5, 5, 0, 0, 100);
+  //ambientLight(80);
+  //pointLight(5, 5, 5, 0, 0, 100);
 
-  rotateY(sin(count * 0.005) * 0.5);
-  specularMaterial(250);
+  rotateY(easeInOutBack(0.5 + sin(count * 0.005)) - 0.25);
 
   for (var i = 0; i < pts.length; i++) {
     push();
+    var ease = easeInOutSine(0.5 + sin((count + i) / 80));
+    var rotate = easeInOutExpo(0.5 + sin((count + i) / 60)) * 2;
     const p = pts[i];
-
     const p1 = rotatepoint(p.x, p.y, 10 + sin((i + count) / 50) * 10, i + count);
     const p2 = rotatepoint(p.x, p.y, 10 + sin((i + count) / 50) * 10, i + 180 + count);
-    strokeWeight(sin((i + count) / 50) + 1);
-    translate(0 + (p.x - smallest - letterWidth / 2), 0 + (p.y - smallesty - letterHeight / 2), sin(count / 50 + i) * 10);
-    rotateZ(i / 10 + count * 0.01);
-    rotateX(i / 10 + count * 0.01);
-    rotateY(i / 10 + count * 0.01);
-    var scale = sin(count / 100) * 5;
-    box(scale, scale, sin((i + count) / 600) * 50);
+    strokeWeight(1);
+    fill(noise(i / 10 + count / 80) * 150);
+    translate(0 + (p.x - smallest - letterWidth / 2), 0 + (p.y - smallesty - letterHeight / 2), sin(count / 50 + i) * max(0, (0.5 + sin(count / 50)) * 80));
+    //rotateZ(rotate);
+    rotateY(rotate);
+    rotateZ(rotate * 3);
+    var scale = ease * 50;
+    box(scale, scale, scale);
     //line(450 + (p1[0] - smallest - letterWidth / 2), 450 + (p1[1] - smallesty - letterHeight / 2), 450 + (p2[0] - smallest - letterWidth / 2), 450 + (p2[1] - smallesty - letterHeight / 2));
     //point(450 + (p.x - smallest - letterWidth / 2), 450 + (p.y - smallesty - letterHeight / 2));
-    pop();
-  }
-
-  for (var i = 0; i < 600; i++) {
-    push();
-    stroke(i / 2.5);
-    ambientMaterial((sin(i + count / 50) + 0.5) * 50);
-    translate(boxes[i].x, boxes[i].y, -800 - i * 0.01);
-    box(900, 900, 500);
     pop();
   }
 

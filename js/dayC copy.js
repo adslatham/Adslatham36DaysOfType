@@ -3,17 +3,15 @@ let fSize; // font size
 let msg; // text to write
 let pts = []; // store path data
 let count = 0;
-let rotcount = 0;
 let lines = [];
-var numLines = 180;
-var paused = false;
+var numLines = 80;
 
 function preload() {
   font = loadFont("36DaysOfType.otf");
 }
 
 function setup() {
-  createCanvas(900, 900, WEBGL);
+  createCanvas(900, 900);
   fSize = 900;
   textFont(font);
   textSize(fSize);
@@ -31,7 +29,7 @@ function setup() {
   for (var j = 0; j < numLines; j++) {
     lines.push({
       pos: random(),
-      width: 1 + random() * 1,
+      width: 1 + random() * 15,
       color: random() * 255,
       speed: random(0.001, 0.002),
       scale: 0.8 + random() * 0.4,
@@ -65,22 +63,20 @@ function setup() {
 
 function draw() {
   background(0);
-  //translate(450, 450);
-  rotateY(6.2 * sin(rotcount / 150));
 
   for (let k = 1; k < pts.length; k++) {
     let p0 = pts[k];
     let p01 = pts[k - 1];
     strokeWeight(2);
     stroke(80);
-    //line(0 + p0.x - smallest - letterWidth / 2, 0 + p0.y - smallesty - letterHeight / 2, 0 + p01.x - smallest - letterWidth / 2, 0 + p01.y - smallesty - letterHeight / 2);
+    line(450 + p0.x - smallest - letterWidth / 2, 450 + p0.y - smallesty - letterHeight / 2, 450 + p01.x - smallest - letterWidth / 2, 450 + p01.y - smallesty - letterHeight / 2);
   }
-  //line(0 + pts[0].x - smallest - letterWidth / 2, 0 + pts[0].y - smallesty - letterHeight / 2, 0 + pts[pts.length - 1].x - smallest - letterWidth / 2, 0 + pts[pts.length - 1].y - smallesty - letterHeight / 2);
+  line(450 + pts[0].x - smallest - letterWidth / 2, 450 + pts[0].y - smallesty - letterHeight / 2, 450 + pts[pts.length - 1].x - smallest - letterWidth / 2, 450 + pts[pts.length - 1].y - smallesty - letterHeight / 2);
 
   for (let j = 0; j < numLines; j++) {
     push();
 
-    strokeWeight(lines[j].width / max(0.2, sin((count + 0.5) * 0.02)));
+    strokeWeight(lines[j].width);
     stroke(lines[j].color);
 
     var pos = floor((pts.length - 1) * lines[j].pos);
@@ -107,6 +103,7 @@ function draw() {
       line(450 + (p.x - smallest - letterWidth / 2) * s, 450 + (p.y - smallesty - letterHeight / 2) * s, 450 + (p1.x - smallest - letterWidth / 2) * s, 450 + (p1.y - smallesty - letterHeight / 2) * s);
     }*/
     let p, p1;
+
     if (lower > pts.length - 1) {
       lower = lower - pts.length;
     }
@@ -121,22 +118,15 @@ function draw() {
     }
     p = pts[parseInt(lower)];
     p1 = pts[parseInt(upper)];
-    translate(0, 0, sin(j + count * 0.01) * 600 * (easeInOutQuad(sin(count * 0.02) + 0.5) + 0.1));
-    scale(0.7 + (0.5 + sin(count * 0.02)) * 0.5, 0.7 + (0.5 + sin(count * 0.02)) * 0.5);
 
-    line(0 + (p.x - smallest - letterWidth / 2) * s, 0 + (p.y - smallesty - letterHeight / 2) * s, 0 + (p1.x - smallest - letterWidth / 2) * s, 0 + (p1.y - smallesty - letterHeight / 2) * s);
+    line(450 + (p.x - smallest - letterWidth / 2) * s, 450 + (p.y - smallesty - letterHeight / 2) * s, 450 + (p1.x - smallest - letterWidth / 2) * s, 450 + (p1.y - smallesty - letterHeight / 2) * s);
 
-    lines[j].pos += lines[j].speed * (1.3 + sin(count / 50));
+    lines[j].pos += lines[j].speed * (1.1 + sin(count / 50));
 
     if (lines[j].pos >= 1) {
       lines[j].pos = 0;
     }
     pop();
   }
-  if (!paused) count++;
-  rotcount++;
-}
-
-function pause() {
-  paused = paused ? false : true;
+  count++;
 }
