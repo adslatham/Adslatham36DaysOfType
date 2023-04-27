@@ -2,7 +2,7 @@ const btn = document.querySelector('button'),
   chunks = [];
 
 function record() {
-    count = 0;
+  setup();
   chunks.length = 0;
   var options = {mimeType: 'video/webm;codecs=h264'};
   let stream = document.querySelector('canvas').captureStream(30),

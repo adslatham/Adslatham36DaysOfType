@@ -2,34 +2,41 @@ let font;
 let fSize; // font size
 let msg; // text to write
 let pts = []; // store path data
+let outsidepts = [];
+let insidepts = [];
 let count = 0;
 let boxes = [];
 let buffer;
-let tShader;
 let squaresCount = 50;
-let masterCount = 0;
+let boxSize = 300;
+let newBoxSize = 300;
+let boxSizeGap = -3.53;
+let paused = false;
+let rCount = 0;
 
 function preload() {
   font = loadFont("36DaysOfType.otf");
-  tShader = loadShader("shaders/mosaic/effect.vert", "shaders/mosaic/effect.frag");
 }
 
 function setup() {
   createCanvas(900, 900, WEBGL);
-  buffer = createGraphics(900, 900, WEBGL);
-  pastFrame = createGraphics(900, 900, WEBGL);
-
+  squaresCount = 50;
+  boxSize = 300;
+  newBoxSize = 300;
+  boxSizeGap = -3.53;
   fSize = 900;
-  buffer.textFont(font);
-  buffer.textSize(fSize);
+  count = 0;
+  rCount = 0;
+  textFont(font);
+  textSize(fSize);
   msg = "g";
   pts = font.textToPoints(msg, 0, 0, fSize, {
-    sampleFactor: 0.05, // increase for more points
+    sampleFactor: 0.1, // increase for more points
     simplifyThreshold: 0.0, // increase to remove collinear points
   });
 
-  buffer.stroke(255);
-  buffer.strokeWeight(8);
+  stroke(255);
+  strokeWeight(2);
 
   largest = -10000;
   largesty = -10000;
@@ -50,6 +57,33 @@ function setup() {
       smallesty = pts[i].y;
     }
   }
+  outsidepts.push(pts[0]);
+  var lineEdit = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const p = pts[i];
+    let p1;
+    if (i > 0){
+        p1 = pts[i-1];
+    }else{
+        p1 = pts[pts.length-1];
+    }
+    if (abs(p.y - p1.y) > 5 && i != 0){
+      lineEdit++;
+    }else if (lineEdit > 0){
+      outsidepts.push(p);
+    }
+  }
+
+  let xPos = smallest;
+  let yPos = smallesty;
+
+  for (let xPos = smallest; xPos < largest; xPos+=boxSize){
+    for (let yPos = smallesty; yPos < largesty; yPos+=boxSize){
+      if (inside([xPos,yPos], pts)){
+        insidepts.push([xPos,yPos]);
+      }
+    }
+  }
 
   letterWidth = largest - smallest;
   letterHeight = largesty - smallesty;
@@ -58,46 +92,85 @@ function setup() {
 let randAmount;
 
 function draw() {
-  buffer.background(0);
-  buffer.stroke(255);
-  buffer.strokeWeight(1);
+  var sCount = count/50;
+  background(0);
+  rotateY(sin(rCount*0.3)*0.5);
+  stroke(80);
+  strokeWeight(10);
+  //scale(1 + (cos(rCount/2)+0.5)/2)
 
-  var gap = 5;
-  var num = 50;
-  for (var t = 0; t < 50; t++) {
-    buffer.push();
-    buffer.fill(255 * ((t + 1) / 50));
-    buffer.translate(0, 0, (t - 25) * gap);
-    buffer.text(msg, -450, 350);
-    buffer.pop();
+  /*
+  for (let i = 0; i < pts.length; i++){
+    push();
+    fill(10);
+    translate(0 + (pts[i].x - smallest - letterWidth / 2), 0 + (pts[i].y - smallesty - letterHeight / 2), max(0,sin((i/50)+sCount)*50));
+    point(easeInOutSine(sin((pts[i][0] + pts[i][1])/300 + sCount)+0.5)*PI);
+    pop();
+  }
+  */
+
+  stroke(255);
+  strokeWeight(1);
+
+  fill(150);
+
+  for (let i = 0; i < insidepts.length; i++){
+    push();
+    fill(noise((insidepts[i][0] - insidepts[i][1])/300 + sCount)*300);
+    translate(0 + (insidepts[i][0] - smallest - letterWidth / 2), 0 + (insidepts[i][1] - smallesty - letterHeight / 2), max(0,sin((i/50)+sCount)*50));
+    rotateY(easeInOutSine(sin((insidepts[i][0] + insidepts[i][1])/300 + sCount)+0.5)*PI);
+    box(boxSize,boxSize,boxSize);
+    pop();
+  }
+  count+=1;
+  if (paused == false){
+    rCount+=0.05;
   }
 
-  shader(tShader);
-  tShader.setUniform("tex0", buffer);
-  tShader.setUniform("resolution", [width, height]);
-  tShader.setUniform("amt", (sin(count / 150) + 0.5) / 10);
-  tShader.setUniform("squares", squaresCount);
-  rect(0, 0, width, height);
-
-  if (count % 120 < 10) {
-    if (count % 120 == 0) {
-      if (masterCount % 2 == 0){
-        randAmount = random(-3, 3);
-        squaresCount = randAmount;
-      }else{
-        randAmount = (squaresCount/10);
-        squaresCount = 0;
-      }
-      masterCount++;
+  if (count % 160 == 0){
+    var newSize = round(random(30, 50))
+    if (count % 320 == 0){
+      newSize = round(random(12, 20))
     }
-    squaresCount += randAmount;
-    buffer.push();
-    buffer.rotateY(sin(randAmount * 0.1) * 0.1);
-    scale(1 + sin(count) * 5);
-    buffer.pop();
+    console.log(newSize);
+    boxSizeGap = (parseFloat(newSize - boxSize)/80); 
+    console.log(boxSizeGap);
   }
 
-  count += 1;
+  if (count % 160 < 80){
+    boxSize += boxSizeGap;
+    console.log("bs" + boxSize)
+    insidepts = [];
+    for (let xPos = smallest; xPos < largest; xPos+=boxSize){
+      for (let yPos = smallesty; yPos < largesty; yPos+=boxSize){
+        if (inside([xPos,yPos], pts)){
+          insidepts.push([xPos,yPos]);
+        }
+      }
+    }
+  }
 
-  image(buffer, -width / 2, -height / 2, width, height);
+}
+
+function inside(point, vs) {
+  // ray-casting algorithm based on
+  // https://wrf.ecse.rpi.edu/Research/Short_Notes/pnpoly.html
+  
+  var x = point[0], y = point[1];
+  
+  var inside = false;
+  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+      var xi = vs[i].x, yi = vs[i].y;
+      var xj = vs[j].x, yj = vs[j].y;
+      
+      var intersect = ((yi > y) != (yj > y))
+          && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+  }
+  
+  return inside;
+};
+
+function pause(){
+  paused = paused ? false :true;
 }

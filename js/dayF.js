@@ -4,6 +4,7 @@ let msg; // text to write
 let pts = []; // store path data
 let count = 0;
 let boxes = [];
+var boxCount = 100;
 
 function preload() {
   font = loadFont("36DaysOfType.otf");
@@ -51,7 +52,7 @@ function setup() {
 
   var move = 2500;
 
-  for (var i = 0; i < 600; i++) {
+  for (var i = 0; i < boxCount; i++) {
     boxes.push({
       x: random(-move, move),
       y: random(-move, move),
@@ -89,7 +90,7 @@ function draw() {
     pop();
   }
 
-  for (var i = 0; i < 600; i++) {
+  for (var i = 0; i < boxCount; i++) {
     push();
     stroke(i / 2.5);
     ambientMaterial((sin(i + count / 50) + 0.5) * 50);
@@ -98,7 +99,7 @@ function draw() {
     pop();
   }
 
-  count += 1;
+  count += 2;
 }
 
 function rotatepoint(cx, cy, radius, angle) {

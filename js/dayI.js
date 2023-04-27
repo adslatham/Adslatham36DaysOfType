@@ -4,6 +4,7 @@ let msg; // text to write
 let pts = []; // store path data
 let count = 0;
 let boxes = [];
+let movePoints = [];
 
 function preload() {
   font = loadFont("36DaysOfType.otf");
@@ -12,25 +13,26 @@ function preload() {
 
 function setup() {
   count = 0;
-  createCanvas(900, 900, WEBGL);
+  createCanvas(900, 900);
   fSize = 900;
   textFont(font);
   textSize(fSize);
-  msg = "h";
+  msg = "i";
   pts = font.textToPoints(msg, 0, 0, fSize, {
-    sampleFactor: 0.03, // increase for more points
+    sampleFactor: 0.06 , // increase for more points
     simplifyThreshold: 0.0, // increase to remove collinear points
   });
   console.log(pts); // { x, y, path angle }
 
   stroke(255);
-  strokeWeight(8);
-  noFill();
+  background(0);
 
   largest = -10000;
   largesty = -10000;
   smallest = 10000;
   smallesty = 10000;
+
+  movePoints = [];
 
   for (let i = 0; i < pts.length; i++) {
     if (pts[i].x > largest) {
@@ -45,6 +47,10 @@ function setup() {
     if (pts[i].y < smallesty) {
       smallesty = pts[i].y;
     }
+    movePoints.push({
+      x:"" + pts[i].x,
+      y:"" + pts[i].y
+    });
   }
 
   letterWidth = largest - smallest;
@@ -52,37 +58,45 @@ function setup() {
 }
 
 function draw() {
-  background(0);
-  fill(255);
+  background(0,2);
   strokeWeight(2);
-  stroke(255);
-
-  //ambientLight(80);
-  //pointLight(5, 5, 5, 0, 0, 100);
-
-  rotateY(easeInOutBack(0.5 + sin(count * 0.005)) - 0.25);
-
-  for (var i = 0; i < pts.length; i++) {
+  //stroke(255);
+  for (var i = 0; i < movePoints.length; i++) {
     push();
-    var ease = easeInOutSine(0.5 + sin((count + i) / 80));
-    var rotate = easeInOutExpo(0.5 + sin((count + i) / 60)) * 2;
-    const p = pts[i];
-    const p1 = rotatepoint(p.x, p.y, 10 + sin((i + count) / 50) * 10, i + count);
-    const p2 = rotatepoint(p.x, p.y, 10 + sin((i + count) / 50) * 10, i + 180 + count);
-    strokeWeight(1);
+    let vectorx = (noise(i)-0.5)*5 + sin(i) + (noise((count/10)+(i/10))-0.5)*10;
+    let vectory = cos(i) * noise(parseFloat(movePoints[i].y)) + (noise(i)-0.5) + (noise((count/10)+(i/10))-0.5)*10;
+    if (abs(parseFloat(movePoints[i].x) - pts[i].x) + abs(parseFloat(movePoints[i].y - pts[i].y)) > 510){
+      movePoints[i].x = "" + pts[i].x;
+      movePoints[i].y = "" + pts[i].y;
+    }
+    stroke(255 - ((abs(parseFloat(movePoints[i].x) - pts[i].x) + abs(parseFloat(movePoints[i].y - pts[i].y)))/2));
+    strokeWeight(5);
     fill(noise(i / 10 + count / 80) * 150);
-    translate(0 + (p.x - smallest - letterWidth / 2), 0 + (p.y - smallesty - letterHeight / 2), sin(count / 50 + i) * max(0, (0.5 + sin(count / 50)) * 80));
-    //rotateZ(rotate);
-    rotateY(rotate);
-    rotateZ(rotate * 3);
-    var scale = ease * 50;
-    box(scale, scale, scale);
+    point(450 + (parseFloat(movePoints[i].x) - smallest - letterWidth / 2), 450 + (parseFloat(movePoints[i].y) - smallesty - letterHeight / 2));
+
+    movePoints[i].x = "" + (parseFloat(movePoints[i].x) + vectorx);
+    movePoints[i].y = "" + (parseFloat(movePoints[i].y) + vectory);
+
     //line(450 + (p1[0] - smallest - letterWidth / 2), 450 + (p1[1] - smallesty - letterHeight / 2), 450 + (p2[0] - smallest - letterWidth / 2), 450 + (p2[1] - smallesty - letterHeight / 2));
     //point(450 + (p.x - smallest - letterWidth / 2), 450 + (p.y - smallesty - letterHeight / 2));
     pop();
   }
 
-  count += 1;
+  fill(255,5);
+  noStroke();
+  for (var i = 0; i < pts.length; i++){
+    if (i == 0){
+      beginShape();
+    }else if (abs(pts[i-1].y - pts[i].y) > 50){
+      endShape();
+      beginShape();
+    }
+    vertex(450 + (parseFloat(pts[i].x) - smallest - letterWidth / 2), 450 + (parseFloat(pts[i].y) - smallesty - letterHeight / 2));
+  }
+  endShape();
+  fill(255);
+
+  count += 0.1;
 }
 
 function rotatepoint(cx, cy, radius, angle) {
