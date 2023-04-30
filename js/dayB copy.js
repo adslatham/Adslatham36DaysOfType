@@ -22,8 +22,6 @@ function setup() {
             let x = 60
             let y = 300
             path = font.getPath(msg, x, y, fSize)
-            console.log(path.commands)
-
             strokeWeight(5);
 
             largest = -10000;
